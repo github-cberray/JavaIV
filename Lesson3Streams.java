@@ -38,7 +38,7 @@ public class Lesson3Streams {
 			s=s.concat(s);
 			n++;
 		}
-		return Arrays.asList(s.split("\\PL+"));
+		return Arrays.asList(s.split("\\s*,\\s*"));//split by any white or comma
 	}
 
 	/*
@@ -59,7 +59,7 @@ public class Lesson3Streams {
 				//.filter(w->w.length()>15)
 				.count();
 		long endTime = System.currentTimeMillis();
-		System.out.println("Stream Count: "+longCount);
+		//System.out.println("Stream Count: "+longCount);
 		return endTime-startTime;
 	}
 
@@ -83,8 +83,7 @@ public class Lesson3Streams {
 				//.filter(w->w.)
 				.count();
 		long endTime = System.currentTimeMillis();
-		System.out.println("Parallel Count: "+longCount);
-		//endTime=endTime+4;
+		//System.out.println("Parallel Count: "+longCount);
 		return endTime-startTime;
 	}
 
@@ -150,10 +149,10 @@ public class Lesson3Streams {
 		System.out.print("1. Processed the following input file into a string: ");
 		System.out.println(filename);
 		System.out.println();
-		System.out.println("2a. String size is: "+byteSize);
+		System.out.println("2. String size is: "+byteSize);
 
 		// Get the number of times the pattern 00000000nnnnnnnn repeats
-		String hexRegEx = "[+-]?0000000[0-9]+|0[Xx][0-9A-Fa-f]+";
+		String hexRegEx = "00000000+[0-9A-Fa-f]{8}";
 		//String hexRegEx = "[0-9A-Za-z]{15}";
 		Pattern hexPatternCounter=Pattern.compile(hexRegEx);
 		Matcher hexCounter = hexPatternCounter.matcher(strDump);
@@ -163,32 +162,34 @@ public class Lesson3Streams {
 		} 
 
 		// Produce the findings to the console
-		System.out.println("2b. Timing of finding hex value occurrences(Total of "+x+")");
-		System.out.print("  Try 1:");
+		System.out.println("   Timing of finding hex value occurrences(Total of "+x+")");
+		System.out.print("   - Try 1:");
 		System.out.println(" String Size: "+byteSize);
 
 		//STREAM - non parallel stream used to filter and count a regular expression in source string
 		long milStream=streamRun(strDump,1, hexRegEx);
-		System.out.println("  Millisecs using stream: "+ milStream + " milliseconds");
+		System.out.println("   - Millisecs using stream: "+ milStream + " milliseconds");
 
 		//STREAM - PARALLEL stream used to filter and count a regular expression in source string
 		long milParStream=parallelStreamRun(strDump,1, hexRegEx);
-		System.out.println("  Millisecs using parallel stream: "+ milParStream+ " milliseconds");
+		System.out.println("   - Millisecs using parallel stream: "+ milParStream+ " milliseconds");
 
 		//RESULTS - indicates the faster of the two methods, stream or parallel
 		System.out.println(printResults(milStream,milParStream));
 
 		//Now, let's do that again with double, triple, quadruple...
 		int iteration = 2;
-		while (milStream<milParStream) {
-			System.out.println("Try "+iteration+": String Size: "+(strDump.length()*iteration));
-			System.out.println(parallelStreamCount(strDump,iteration)+" strings");
+		while (milStream<=milParStream) {
+			System.out.println();
+			System.out.println("Try "+iteration+": String Size: "+(strDump.length()*iteration)+" ("+iteration+"x)");
+			//System.out.println(parallelStreamCount(strDump,iteration)+" strings");
 			milStream=streamRun(strDump,iteration,hexRegEx);
 			milParStream=parallelStreamRun(strDump,iteration,hexRegEx);
 			System.out.println(printResults(milStream,milParStream));
 			iteration++;
 			if (iteration>20) {milStream=1000000000;}//limit the iterations to 20
 		}
+		System.out.println("All done!");
 	}
 
 }
